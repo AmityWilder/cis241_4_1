@@ -1,30 +1,29 @@
 # Generates a new Rust crate with Raylib, inserts a starter snippet, and builds the crate so that Raylib is ready to use.
-# Usage:
-# ./script.sh <DIR> <NAME> [SNIPPET]
+# Example: ./script.sh <DIR> <NAME> [OPTIONS]
 
 #!/bin/bash
 
 usage_err() {
     local err=$1
+
     echo -e "Error: $err
 
-Usage: script.sh <DIR> <NAME> [SNIPPET]
+Usage: script.sh <DIR> <NAME> [OPTIONS]
 
 Arguments:
-  <DIR>:     Directory to create project in
-  <NAME>:    Name of the project
-  [SNIPPET]: Optional path to a text file containing the snippet to use for main.rs
+  <DIR>   Directory to create project in
+  <NAME>  Name of the project
+
+Options:
+  -b, --build           Build the project after initializing
+  -s, --snippet <PATH>  Provide a path to a text file containing the snippet to use for main.rs
 "
     exit 1
 }
 
 # display error message if arguments are invalid
-if [ $# -lt 2 ]
-then
-    usage_err "Not enough arguments (expected 2-3, got $#)"
-elif [ $# -gt 3 ]
-then
-    usage_err "Too many arguments (expected 2-3, got $#)"
+if [ $# -lt 2 ]; then
+    usage_err "Not enough positional arguments (expected 2, got $#)"
 fi
 
 dir="$1"                                                # give a name to the first positional argument
@@ -33,11 +32,19 @@ echo "dir: \"$dir\""                                    # for debugging/feedback
 name="$2"                                               # give a name to the second positional argument
 echo "name: \"$name\""                                  # for debugging/feedback
 
-if [ -n "$3" ]                                          # the third positional argument is optional - check if it exists
+args=("$@")
+for i in {0..$#}; do
+    if [[ "$arg" =~ ^-[a-z]*s$ ]] || [ "$arg" = '--snippet' ]; then
+	i=$(($i + 1))
+        snippet_path=${$args[$i]}
+	i=$(($i + 1))
+    elif [[ "$arg" =~ $-[a-z]*b[a-z]*$ ]] || [ "$arg" = '--build' ]; then
+        do_build=True
+    fi
+done
+
+if [ -n "$snippet_path" ] 
 then                                                    # snippet argument exists - load it
-    local snippet_path="$3"                             # snippet argument is a path to the file, not a literal snippet
-                                                        # (passing a full snippet literal to the cli would be very cumbersome,
-                                                        # and not worth supporting)
     echo "snippet path: \"$snippet_path\""              # for debugging/feedback
     printf -v name "$name"                              # make $name available to printf in next line (to my understanding)
     snippet=$(printf "$(cat $snippet_path)")            # using printf here so that snippet can reference name
@@ -96,5 +103,7 @@ cd "$path"                                              # allows us to use paths
 cargo add raylib thiserror anyhow arrayvec smallvec tinyvec \
     -F raylib/with_serde serde -F serde/derive          # add useful crates I tend to use
 echo -e "$snippet" > './src/main.rs'                    # write snippet into main
-cargo build                                             # build after so that the application is ready to run
+if [[ "$3" =~ ^-[a-z]*b ]] || [[ "$4" =~ ^-[a-z]*b ]]; then
+cargo build                                             # optionally build after so that the application is ready to run
+fi
 vim './src/main.rs'                                     # open in vim to start editing
