@@ -4,32 +4,32 @@
 
 #!/bin/bash
 
-if [ $# -lt 2 || $# -gt 3 ]				# display error message if arguments are invalid
+if [ $# -lt 2 || $# -gt 3 ]                             # display error message if arguments are invalid
 then
-	echo "Error: Invalid arguments (expected 2 or 3, got $#)\nUsage: script <DIR> <NAME> [SNIPPET]"
-	exit 1
+    echo "Error: Invalid arguments (expected 2 or 3, got $#)\nUsage: script <DIR> <NAME> [SNIPPET]"
+    exit 1
 fi
 
-dir="$1"						# give a name to the first positional argument
-echo "dir: \"$dir\""					# for debugging/feedback
+dir="$1"                                                # give a name to the first positional argument
+echo "dir: \"$dir\""                                    # for debugging/feedback
 
-name="$2"						# give a name to the second positional argument
-echo "name: \"$name\""					# for debugging/feedback
+name="$2"                                               # give a name to the second positional argument
+echo "name: \"$name\""                                  # for debugging/feedback
 
-if [ -n "$3" ]						# the third positional argument is optional - check if it exists
-then							# snippet argument exists - load it
-	local snippet_path="$3"				# snippet argument is a path to the file, not a literal snippet
-							# (passing a full snippet literal to the cli would be very cumbersome,
-							# and not worth supporting)
-	echo "snippet path: \"$snippet_path\""		# for debugging/feedback
-	printf -v name "$name"				# make $name available to printf in next line (to my understanding)
-	snippet=$(printf "$(cat $snippet_path)")	# using printf here so that snippet can reference name
-	echo -e "snippet: ```\n$snippet\n```"		# for debugging/feedback
-else							# snippet argument is excluded - use the hardcoded default
-	echo 'using default snippet'			# for debugging/feedback
-	snippet="#![cfg_attr(not(debug_assertions), windows_subsystem = \"windows\")]
+if [ -n "$3" ]                                          # the third positional argument is optional - check if it exists
+then                                                    # snippet argument exists - load it
+    local snippet_path="$3"                             # snippet argument is a path to the file, not a literal snippet
+                                                        # (passing a full snippet literal to the cli would be very cumbersome,
+                                                        # and not worth supporting)
+    echo "snippet path: \"$snippet_path\""              # for debugging/feedback
+    printf -v name "$name"                              # make $name available to printf in next line (to my understanding)
+    snippet=$(printf "$(cat $snippet_path)")            # using printf here so that snippet can reference name
+    echo -e "snippet: ```\n$snippet\n```"               # for debugging/feedback
+else                                                    # snippet argument is excluded - use the hardcoded default
+    echo 'using default snippet'                        # for debugging/feedback
+    snippet="#![cfg_attr(not(debug_assertions), windows_subsystem = \"windows\")]
 #![deny(clippy::undocumented_unsafe_blocks, clippy::missing_safety_doc)]
-	
+
 use raylib::prelude::*;
 #[allow(clippy::enum_glob_use, unused_imports, reason = \"all variants of these enums are prefixed\")]
 use {KeyboardKey::*, MouseButton::*};
@@ -71,10 +71,10 @@ fn main() {
 "
 fi
 
-cargo new "$dir/$name"					# create the project
-cd "$dir/$name"						# allows us to use paths relative to our project for the rest of the script
+cargo new "$dir/$name"                                  # create the project
+cd "$dir/$name"                                         # allows us to use paths relative to our project for the rest of the script
 cargo add raylib thiserror anyhow arrayvec smallvec tinyvec \
-	-F raylib/with_serde serde -F serde/derive	# add useful crates I tend to use
-echo -e "$snippet" > './src/main.rs'			# write snippet into main
-cargo build						# build after so that the application is ready to run
-vim './src/main.rs'					# open in vim to start editing
+    -F raylib/with_serde serde -F serde/derive          # add useful crates I tend to use
+echo -e "$snippet" > './src/main.rs'                    # write snippet into main
+cargo build                                             # build after so that the application is ready to run
+vim './src/main.rs'                                     # open in vim to start editing
