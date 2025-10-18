@@ -73,15 +73,8 @@ fi
 
 cargo new "$dir/$name"					# create the project
 cd "$dir/$name"						# allows us to use paths relative to our project for the rest of the script
-cargo add raylib					# add just the Raylib dependency to begin with
-cargo build						# build before inserting snippet since there might be errors from using code before bindgen runs
-							# and before adding extra libraries so that if something goes wrong while building Raylib, less
-							# time/effort is wasted on building the native Rust crates that are far less likely to break
-							# (Raylib has to be built from C, so it's possible your machine is missing libclang or glfw,
-							# while the native Rust crates are basically self-contained in terms of rustc compilation)
-							# TODO: turns out this doesn't work? if the build fails, the script keeps going...
 cargo add raylib thiserror anyhow arrayvec smallvec tinyvec \
-	-F raylib/with_serde serde -F serde/derive	# add extra crates that I tend to use
+	-F raylib/with_serde serde -F serde/derive	# add useful crates I tend to use
 echo -e "$snippet" > './src/main.rs'			# write snippet into main
 cargo build						# build after so that the application is ready to run
-# vim './src/main.rs'					# open in vim to start editing
+vim './src/main.rs'					# open in vim to start editing
