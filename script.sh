@@ -4,10 +4,27 @@
 
 #!/bin/bash
 
-if [ $# -lt 2 || $# -gt 3 ]                             # display error message if arguments are invalid
-then
-    echo "Error: Invalid arguments (expected 2 or 3, got $#)\nUsage: script <DIR> <NAME> [SNIPPET]"
+usage_err() {
+    local err=$1
+    echo -e "Error: $err
+
+Usage: script.sh <DIR> <NAME> [SNIPPET]
+
+Arguments:
+  <DIR>:     Directory to create project in
+  <NAME>:    Name of the project
+  [SNIPPET]: Optional path to a text file containing the snippet to use for main.rs
+"
     exit 1
+}
+
+# display error message if arguments are invalid
+if [ $# -lt 2 ]
+then
+    usage_err "Not enough arguments (expected 2-3, got $#)"
+elif [ $# -gt 3 ]
+then
+    usage_err "Too many arguments (expected 2-3, got $#)"
 fi
 
 dir="$1"                                                # give a name to the first positional argument
@@ -71,8 +88,11 @@ fn main() {
 "
 fi
 
-cargo new "$dir/$name"                                  # create the project
-cd "$dir/$name"                                         # allows us to use paths relative to our project for the rest of the script
+path="$dir/$(echo "$name" | sed -r 's/([a-z])([A-Z])| /\1_\2/g' | sed -r 's/([A-Z])/\L\1/g')"
+echo $path                                              # for debugging/feedback
+
+cargo new "$path"                                       # create the project
+cd "$path"                                              # allows us to use paths relative to our project for the rest of the script
 cargo add raylib thiserror anyhow arrayvec smallvec tinyvec \
     -F raylib/with_serde serde -F serde/derive          # add useful crates I tend to use
 echo -e "$snippet" > './src/main.rs'                    # write snippet into main
