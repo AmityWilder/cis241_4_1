@@ -33,19 +33,26 @@ name="$2"                                               # give a name to the sec
 echo "name: \"$name\""                                  # for debugging/feedback
 
 args=("$@")
-for i in {0..$#}; do
+do_build=0
+i=0
+while [ $i -lt $# ]; do
+    arg=${args[$i]}
+    echo "arg $i: $arg"
     if [[ "$arg" =~ ^-[a-z]*s$ ]] || [ "$arg" = '--snippet' ]; then
-	i=$(($i + 1))
-        snippet_path=${$args[$i]}
-	i=$(($i + 1))
+        ((i++))
+        snippet_path=${args[$i]}
     elif [[ "$arg" =~ $-[a-z]*b[a-z]*$ ]] || [ "$arg" = '--build' ]; then
-        do_build=True
+        do_build=1
     fi
+    ((i++))
 done
 
 if [ -n "$snippet_path" ] 
 then                                                    # snippet argument exists - load it
     echo "snippet path: \"$snippet_path\""              # for debugging/feedback
+    if [ ! -f $snippet_path ]; then
+        usage_err "File \"$snippet_path\" not found"
+    fi
     printf -v name "$name"                              # make $name available to printf in next line (to my understanding)
     snippet=$(printf "$(cat $snippet_path)")            # using printf here so that snippet can reference name
     echo -e "snippet: ```\n$snippet\n```"               # for debugging/feedback
@@ -103,7 +110,7 @@ cd "$path"                                              # allows us to use paths
 cargo add raylib thiserror anyhow arrayvec smallvec tinyvec \
     -F raylib/with_serde serde -F serde/derive          # add useful crates I tend to use
 echo -e "$snippet" > './src/main.rs'                    # write snippet into main
-if [[ "$3" =~ ^-[a-z]*b ]] || [[ "$4" =~ ^-[a-z]*b ]]; then
+if [ $do_build != 0 ]; then
 cargo build                                             # optionally build after so that the application is ready to run
 fi
 vim './src/main.rs'                                     # open in vim to start editing
