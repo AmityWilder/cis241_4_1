@@ -129,11 +129,11 @@ cargo new "$path"                                       # create the project
 cd "$path"                                              # allows us to use paths relative to our project for the rest of the script
 cargo add raylib thiserror anyhow arrayvec smallvec tinyvec \
     -F raylib/with_serde serde -F serde/derive          # add useful crates I tend to use
-echo -e "$snippet" > './src/main.rs'                    # write snippet into main
 
 if [ $do_build != 0 ]; then
     cargo build                                         # optionally build after so that the application is ready to run
 fi
+echo -e "$snippet" > './src/main.rs'                    # write snippet into main; after building so that raylib can have bindgen run
 
 if [ $open_vim != 0 ]; then
     vim './src/main.rs'                                 # optionally open in vim to start editing
